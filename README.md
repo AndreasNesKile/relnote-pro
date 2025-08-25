@@ -8,6 +8,7 @@ Automatic, clean, and consistent changelogs & release notes — with **monorepo 
 ---
 
 ## Table of Contents
+
 - [Why RelNote Pro?](#why-relnote-pro)
 - [Features](#features)
 - [Quick Start](#quick-start)
@@ -22,6 +23,7 @@ Automatic, clean, and consistent changelogs & release notes — with **monorepo 
 ---
 
 ## Why RelNote Pro?
+
 - **Save time:** Stop copy/pasting PR titles.
 - **Stay consistent:** Same structure every release.
 - **Privacy-first:** Everything runs in your repo using `GITHUB_TOKEN`.
@@ -29,6 +31,7 @@ Automatic, clean, and consistent changelogs & release notes — with **monorepo 
 ---
 
 ## Features
+
 - ✨ **PR ➜ Unreleased:** When a PR is merged, a bullet is added under `## [Unreleased]` in `CHANGELOG.md`.
 - 🏷️ **Categorization:** Uses labels and/or Conventional Commits (`feat:`, `fix:` …).
 - 🧭 **SemVer suggestion:** Major on breaking, minor for features, patch for fixes/docs/refactor …
@@ -41,7 +44,9 @@ Automatic, clean, and consistent changelogs & release notes — with **monorepo 
 ## Quick Start
 
 ### 1) Install in your repo
+
 Create `.github/workflows/relnote-pro.yml`:
+
 ```yaml
 name: RelNote Pro
 
@@ -65,8 +70,9 @@ jobs:
           fetch-depth: 0
 
       - name: RelNote Pro
-        uses: <your-github-user>/relnote-pro@v0.1.0
+        uses: relnotepro/relnote-pro@v0.1.0
         with:
           config-path: ".relnote-pro.yml"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
