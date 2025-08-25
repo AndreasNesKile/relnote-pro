@@ -1,19 +1,27 @@
-changelogPath: CHANGELOG.md
-language: no
-categories:
-  Nytt: ["feature", "feat", "enhancement"]
-  Fikser: ["fix", "bug"]
-  Dokumentasjon: ["docs"]
-  Ytelse: ["perf"]
-  Refaktorering: ["refactor"]
-  Tester: ["test"]
-  Diverse: ["chore"]
-breakingLabels: ["breaking", "breaking-change", "major"]
-monorepo:
-  enabled: true
-  detect: true
-  packages:
-    - "packages/*"
-excludePaths:
-  - "docs/**"
-  - "examples/**"
+name: RelNote Pro
+
+on:
+  pull_request:
+    types: [closed]
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+  pull-requests: read
+  issues: read
+
+jobs:
+  relnotes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: RelNote Pro
+        uses: ./.github/actions/relnote-pro
+        with:
+          config-path: ".relnote-pro.yml"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
