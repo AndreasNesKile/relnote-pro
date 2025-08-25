@@ -1,3 +1,4 @@
+"use strict";
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -4260,18 +4261,18 @@ var require_webidl = __commonJS({
     webidl.errors.exception = function(message) {
       return new TypeError(`${message.header}: ${message.message}`);
     };
-    webidl.errors.conversionFailed = function(context2) {
-      const plural = context2.types.length === 1 ? "" : " one of";
-      const message = `${context2.argument} could not be converted to${plural}: ${context2.types.join(", ")}.`;
+    webidl.errors.conversionFailed = function(context4) {
+      const plural = context4.types.length === 1 ? "" : " one of";
+      const message = `${context4.argument} could not be converted to${plural}: ${context4.types.join(", ")}.`;
       return webidl.errors.exception({
-        header: context2.prefix,
+        header: context4.prefix,
         message
       });
     };
-    webidl.errors.invalidArgument = function(context2) {
+    webidl.errors.invalidArgument = function(context4) {
       return webidl.errors.exception({
-        header: context2.prefix,
-        message: `"${context2.value}" is an invalid ${context2.type}.`
+        header: context4.prefix,
+        message: `"${context4.value}" is an invalid ${context4.type}.`
       });
     };
     webidl.brandCheck = function(V, I, opts = void 0) {
@@ -9597,15 +9598,15 @@ var require_api_request = __commonJS({
         }
         addSignal(this, signal);
       }
-      onConnect(abort, context2) {
+      onConnect(abort, context4) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context2;
+        this.context = context4;
       }
       onHeaders(statusCode, rawHeaders, resume, statusMessage) {
-        const { callback, opaque, abort, context: context2, responseHeaders, highWaterMark } = this;
+        const { callback, opaque, abort, context: context4, responseHeaders, highWaterMark } = this;
         const headers = responseHeaders === "raw" ? util.parseRawHeaders(rawHeaders) : util.parseHeaders(rawHeaders);
         if (statusCode < 200) {
           if (this.onInfo) {
@@ -9632,7 +9633,7 @@ var require_api_request = __commonJS({
               trailers: this.trailers,
               opaque,
               body,
-              context: context2
+              context: context4
             });
           }
         }
@@ -9752,15 +9753,15 @@ var require_api_stream = __commonJS({
         }
         addSignal(this, signal);
       }
-      onConnect(abort, context2) {
+      onConnect(abort, context4) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context2;
+        this.context = context4;
       }
       onHeaders(statusCode, rawHeaders, resume, statusMessage) {
-        const { factory, opaque, context: context2, callback, responseHeaders } = this;
+        const { factory, opaque, context: context4, callback, responseHeaders } = this;
         const headers = responseHeaders === "raw" ? util.parseRawHeaders(rawHeaders) : util.parseHeaders(rawHeaders);
         if (statusCode < 200) {
           if (this.onInfo) {
@@ -9788,7 +9789,7 @@ var require_api_stream = __commonJS({
             statusCode,
             headers,
             opaque,
-            context: context2
+            context: context4
           });
           if (!res || typeof res.write !== "function" || typeof res.end !== "function" || typeof res.on !== "function") {
             throw new InvalidReturnValueError("expected Writable");
@@ -9980,17 +9981,17 @@ var require_api_pipeline = __commonJS({
         this.res = null;
         addSignal(this, signal);
       }
-      onConnect(abort, context2) {
+      onConnect(abort, context4) {
         const { ret, res } = this;
         assert(!res, "pipeline cannot be retried");
         if (ret.destroyed) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context2;
+        this.context = context4;
       }
       onHeaders(statusCode, rawHeaders, resume) {
-        const { opaque, handler, context: context2 } = this;
+        const { opaque, handler, context: context4 } = this;
         if (statusCode < 200) {
           if (this.onInfo) {
             const headers = this.responseHeaders === "raw" ? util.parseRawHeaders(rawHeaders) : util.parseHeaders(rawHeaders);
@@ -10008,7 +10009,7 @@ var require_api_pipeline = __commonJS({
             headers,
             opaque,
             body: this.res,
-            context: context2
+            context: context4
           });
         } catch (err) {
           this.res.on("error", util.nop);
@@ -10092,7 +10093,7 @@ var require_api_upgrade = __commonJS({
         this.context = null;
         addSignal(this, signal);
       }
-      onConnect(abort, context2) {
+      onConnect(abort, context4) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
@@ -10103,7 +10104,7 @@ var require_api_upgrade = __commonJS({
         throw new SocketError("bad upgrade", null);
       }
       onUpgrade(statusCode, rawHeaders, socket) {
-        const { callback, opaque, context: context2 } = this;
+        const { callback, opaque, context: context4 } = this;
         assert.strictEqual(statusCode, 101);
         removeSignal(this);
         this.callback = null;
@@ -10112,7 +10113,7 @@ var require_api_upgrade = __commonJS({
           headers,
           socket,
           opaque,
-          context: context2
+          context: context4
         });
       }
       onError(err) {
@@ -10180,18 +10181,18 @@ var require_api_connect = __commonJS({
         this.abort = null;
         addSignal(this, signal);
       }
-      onConnect(abort, context2) {
+      onConnect(abort, context4) {
         if (!this.callback) {
           throw new RequestAbortedError();
         }
         this.abort = abort;
-        this.context = context2;
+        this.context = context4;
       }
       onHeaders() {
         throw new SocketError("bad connect", null);
       }
       onUpgrade(statusCode, rawHeaders, socket) {
-        const { callback, opaque, context: context2 } = this;
+        const { callback, opaque, context: context4 } = this;
         removeSignal(this);
         this.callback = null;
         let headers = rawHeaders;
@@ -10203,7 +10204,7 @@ var require_api_connect = __commonJS({
           headers,
           socket,
           opaque,
-          context: context2
+          context: context4
         });
       }
       onError(err) {
@@ -17580,12 +17581,12 @@ var require_lib = __commonJS({
             throw new Error("Client has already been disposed.");
           }
           const parsedUrl = new URL(requestUrl);
-          let info2 = this._prepareRequest(verb, parsedUrl, headers);
+          let info = this._prepareRequest(verb, parsedUrl, headers);
           const maxTries = this._allowRetries && RetryableHttpVerbs.includes(verb) ? this._maxRetries + 1 : 1;
           let numTries = 0;
           let response;
           do {
-            response = yield this.requestRaw(info2, data);
+            response = yield this.requestRaw(info, data);
             if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
               let authenticationHandler;
               for (const handler of this.handlers) {
@@ -17595,7 +17596,7 @@ var require_lib = __commonJS({
                 }
               }
               if (authenticationHandler) {
-                return authenticationHandler.handleAuthentication(this, info2, data);
+                return authenticationHandler.handleAuthentication(this, info, data);
               } else {
                 return response;
               }
@@ -17618,8 +17619,8 @@ var require_lib = __commonJS({
                   }
                 }
               }
-              info2 = this._prepareRequest(verb, parsedRedirectUrl, headers);
-              response = yield this.requestRaw(info2, data);
+              info = this._prepareRequest(verb, parsedRedirectUrl, headers);
+              response = yield this.requestRaw(info, data);
               redirectsRemaining--;
             }
             if (!response.message.statusCode || !HttpResponseRetryCodes.includes(response.message.statusCode)) {
@@ -17648,7 +17649,7 @@ var require_lib = __commonJS({
        * @param info
        * @param data
        */
-      requestRaw(info2, data) {
+      requestRaw(info, data) {
         return __awaiter(this, void 0, void 0, function* () {
           return new Promise((resolve, reject) => {
             function callbackForResult(err, res) {
@@ -17660,7 +17661,7 @@ var require_lib = __commonJS({
                 resolve(res);
               }
             }
-            this.requestRawWithCallback(info2, data, callbackForResult);
+            this.requestRawWithCallback(info, data, callbackForResult);
           });
         });
       }
@@ -17670,12 +17671,12 @@ var require_lib = __commonJS({
        * @param data
        * @param onResult
        */
-      requestRawWithCallback(info2, data, onResult) {
+      requestRawWithCallback(info, data, onResult) {
         if (typeof data === "string") {
-          if (!info2.options.headers) {
-            info2.options.headers = {};
+          if (!info.options.headers) {
+            info.options.headers = {};
           }
-          info2.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
+          info.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
         }
         let callbackCalled = false;
         function handleResult(err, res) {
@@ -17684,7 +17685,7 @@ var require_lib = __commonJS({
             onResult(err, res);
           }
         }
-        const req = info2.httpModule.request(info2.options, (msg) => {
+        const req = info.httpModule.request(info.options, (msg) => {
           const res = new HttpClientResponse(msg);
           handleResult(void 0, res);
         });
@@ -17696,7 +17697,7 @@ var require_lib = __commonJS({
           if (socket) {
             socket.end();
           }
-          handleResult(new Error(`Request timeout: ${info2.options.path}`));
+          handleResult(new Error(`Request timeout: ${info.options.path}`));
         });
         req.on("error", function(err) {
           handleResult(err);
@@ -17732,27 +17733,27 @@ var require_lib = __commonJS({
         return this._getProxyAgentDispatcher(parsedUrl, proxyUrl);
       }
       _prepareRequest(method, requestUrl, headers) {
-        const info2 = {};
-        info2.parsedUrl = requestUrl;
-        const usingSsl = info2.parsedUrl.protocol === "https:";
-        info2.httpModule = usingSsl ? https : http;
+        const info = {};
+        info.parsedUrl = requestUrl;
+        const usingSsl = info.parsedUrl.protocol === "https:";
+        info.httpModule = usingSsl ? https : http;
         const defaultPort = usingSsl ? 443 : 80;
-        info2.options = {};
-        info2.options.host = info2.parsedUrl.hostname;
-        info2.options.port = info2.parsedUrl.port ? parseInt(info2.parsedUrl.port) : defaultPort;
-        info2.options.path = (info2.parsedUrl.pathname || "") + (info2.parsedUrl.search || "");
-        info2.options.method = method;
-        info2.options.headers = this._mergeHeaders(headers);
+        info.options = {};
+        info.options.host = info.parsedUrl.hostname;
+        info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
+        info.options.path = (info.parsedUrl.pathname || "") + (info.parsedUrl.search || "");
+        info.options.method = method;
+        info.options.headers = this._mergeHeaders(headers);
         if (this.userAgent != null) {
-          info2.options.headers["user-agent"] = this.userAgent;
+          info.options.headers["user-agent"] = this.userAgent;
         }
-        info2.options.agent = this._getAgent(info2.parsedUrl);
+        info.options.agent = this._getAgent(info.parsedUrl);
         if (this.handlers) {
           for (const handler of this.handlers) {
-            handler.prepareRequest(info2.options);
+            handler.prepareRequest(info.options);
           }
         }
-        return info2;
+        return info;
       }
       _mergeHeaders(headers) {
         if (this.requestOptions && this.requestOptions.headers) {
@@ -19742,10 +19743,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issueCommand)("notice", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.notice = notice;
-    function info2(message) {
+    function info(message) {
       process.stdout.write(message + os.EOL);
     }
-    exports2.info = info2;
+    exports2.info = info;
     function startGroup(name) {
       (0, command_1.issue)("group", name);
     }
@@ -20286,8 +20287,8 @@ var require_dist_node2 = __commonJS({
     function isKeyOperator(operator) {
       return operator === ";" || operator === "&" || operator === "?";
     }
-    function getValues(context2, operator, key, modifier) {
-      var value = context2[key], result = [];
+    function getValues(context4, operator, key, modifier) {
+      var value = context4[key], result = [];
       if (isDefined(value) && value !== "") {
         if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
           value = value.toString();
@@ -20351,7 +20352,7 @@ var require_dist_node2 = __commonJS({
         expand: expand.bind(null, template)
       };
     }
-    function expand(template, context2) {
+    function expand(template, context4) {
       var operators = ["+", "#", ".", "/", ";", "?", "&"];
       template = template.replace(
         /\{([^\{\}]+)\}|([^\{\}]+)/g,
@@ -20365,7 +20366,7 @@ var require_dist_node2 = __commonJS({
             }
             expression.split(/,/g).forEach(function(variable) {
               var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
-              values.push(getValues(context2, operator, tmp[1], tmp[2] || tmp[3]));
+              values.push(getValues(context4, operator, tmp[1], tmp[2] || tmp[3]));
             });
             if (operator && operator !== "+") {
               var separator = ",";
@@ -23878,7 +23879,7 @@ var require_github = __commonJS({
 
 // src/index.ts
 var core2 = __toESM(require_core(), 1);
-var github = __toESM(require_github(), 1);
+var github3 = __toESM(require_github(), 1);
 
 // src/config.ts
 var import_promises = __toESM(require("node:fs/promises"), 1);
@@ -26533,7 +26534,7 @@ function applyDefaults(raw) {
     ],
     monorepo: raw.monorepo ?? { enabled: false, detect: true },
     excludePaths: raw.excludePaths ?? [],
-    language: raw.language ?? "en"
+    language: "en"
   };
 }
 
@@ -26545,8 +26546,7 @@ All notable changes to this project will be documented in this file.
 
 `;
 var ENC = "utf8";
-var UNRELEASED_RE = /^## \[Unreleased\]\s*$/m;
-var SECTION_CAPTURE_RE = /(## \[Unreleased\]\s*\n)([\s\S]*?)(?=^## \[|\Z)/m;
+var UNRELEASED_HEADER_RE = /^##\s*\[?\s*unreleased\s*\]?\s*$/im;
 function b64enc(s) {
   return Buffer.from(s, ENC).toString("base64");
 }
@@ -26556,6 +26556,11 @@ function b64dec(s) {
 async function getDefaultBranch(octo, owner, repo) {
   const { data } = await octo.rest.repos.get({ owner, repo });
   return data.default_branch;
+}
+function resolveTargetBranch(ctx, fallback) {
+  const prBase = ctx.payload?.pull_request?.base?.ref;
+  const relTarget = ctx.payload?.release?.target_commitish;
+  return prBase || relTarget || fallback;
 }
 async function getFile(octo, owner, repo, path, branch) {
   try {
@@ -26587,24 +26592,37 @@ async function putFile(octo, owner, repo, path, branch, content, message, sha) {
     sha
   });
 }
-function ensureHeaderAndUnreleased(text) {
-  let t = text;
-  if (!t.trim()) t = HEADER;
-  if (!/^\#\s*Changelog/m.test(t)) {
-    t = HEADER + t;
-  }
-  if (!UNRELEASED_RE.test(t)) {
-    const idx = t.indexOf("\n## ");
-    if (idx >= 0) {
-      t = t.slice(0, idx) + "\n## [Unreleased]\n\n" + t.slice(idx);
-    } else {
-      t += "\n## [Unreleased]\n\n";
+function captureUnreleased(text) {
+  const lines = text.split(/\r?\n/);
+  let start = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (UNRELEASED_HEADER_RE.test(lines[i])) {
+      start = i;
+      break;
     }
   }
-  t = t.replace(SECTION_CAPTURE_RE, (_m, hdr, body) => {
-    const normBody = body.endsWith("\n") ? body : body + "\n";
-    return `${hdr}${normBody}`;
-  });
+  if (start === -1) return { start: -1, end: -1, header: "", body: "", lines };
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^##\s+/.test(lines[i])) {
+      end = i;
+      break;
+    }
+  }
+  const header = lines[start];
+  const body = lines.slice(start + 1, end).join("\n");
+  return { start, end, header, body, lines };
+}
+function ensureHeaderAndUnreleased(text) {
+  let t = text || "";
+  if (!/^\#\s*Changelog/im.test(t)) {
+    t = HEADER + t;
+  }
+  if (!UNRELEASED_HEADER_RE.test(t)) {
+    const idx = t.indexOf("\n## ");
+    if (idx >= 0) t = t.slice(0, idx) + "\n## [Unreleased]\n\n" + t.slice(idx);
+    else t += "\n## [Unreleased]\n\n";
+  }
   return t;
 }
 function normalizeTitleForBullet(title) {
@@ -26646,59 +26664,19 @@ ${bullet}
   return lines.join("\n");
 }
 function replaceUnreleasedSection(fullText, updater) {
-  if (!SECTION_CAPTURE_RE.test(fullText)) {
-    const ensured = ensureHeaderAndUnreleased(fullText);
-    return ensured.replace(SECTION_CAPTURE_RE, (_m, hdr, body) => {
-      const updated = updater(body);
-      return `${hdr}${updated}`;
-    });
-  }
-  return fullText.replace(SECTION_CAPTURE_RE, (_m, hdr, body) => {
-    const updated = updater(body);
-    return `${hdr}${updated}`;
-  });
-}
-async function ensureChangelog(octo, ctx, cfg) {
-  const { owner, repo } = ctx.repo;
-  const branch = await getDefaultBranch(octo, owner, repo);
-  const path = cfg.changelogPath ?? "CHANGELOG.md";
-  const existing = await getFile(octo, owner, repo, path, branch);
-  if (!existing) {
-    await putFile(
-      octo,
-      owner,
-      repo,
-      path,
-      branch,
-      HEADER,
-      "chore(relnote): initialize CHANGELOG.md"
-    );
-    const fresh = await getFile(octo, owner, repo, path, branch);
-    if (!fresh) throw new Error("Failed to create CHANGELOG.md");
-    return { sha: fresh.sha, content: fresh.content, branch };
-  }
-  const ensured = ensureHeaderAndUnreleased(existing.content);
-  if (ensured !== existing.content) {
-    await putFile(
-      octo,
-      owner,
-      repo,
-      path,
-      branch,
-      ensured,
-      "chore(relnote): ensure Unreleased section",
-      existing.sha
-    );
-    const updated = await getFile(octo, owner, repo, path, branch);
-    if (!updated) throw new Error("Failed to update CHANGELOG.md");
-    return { sha: updated.sha, content: updated.content, branch };
-  }
-  return { sha: existing.sha, content: existing.content, branch };
+  const t = ensureHeaderAndUnreleased(fullText);
+  const cap = captureUnreleased(t);
+  if (cap.start === -1) return t;
+  const updatedBody = updater(cap.body);
+  const before = cap.lines.slice(0, cap.start + 1).join("\n");
+  const after = cap.lines.slice(cap.end).join("\n");
+  return [before, updatedBody.trimEnd(), "", after].join("\n").replace(/\n{3,}/g, "\n\n");
 }
 async function addUnreleasedEntry(octo, ctx, cfg, entry) {
   const { owner, repo } = ctx.repo;
   const path = cfg.changelogPath ?? "CHANGELOG.md";
-  const branch = await getDefaultBranch(octo, owner, repo);
+  const defaultBranch = await getDefaultBranch(octo, owner, repo);
+  const branch = resolveTargetBranch(ctx, defaultBranch);
   const file = await getFile(octo, owner, repo, path, branch);
   const base = file?.content ?? HEADER;
   const next = replaceUnreleasedSection(
@@ -26723,7 +26701,8 @@ async function addUnreleasedEntry(octo, ctx, cfg, entry) {
 async function releaseUnreleased(octo, ctx, cfg) {
   const { owner, repo } = ctx.repo;
   const path = cfg.changelogPath ?? "CHANGELOG.md";
-  const branch = await getDefaultBranch(octo, owner, repo);
+  const defaultBranch = await getDefaultBranch(octo, owner, repo);
+  const branch = resolveTargetBranch(ctx, defaultBranch);
   const file = await getFile(octo, owner, repo, path, branch);
   if (!file) return;
   const now = /* @__PURE__ */ new Date();
@@ -26735,25 +26714,16 @@ async function releaseUnreleased(octo, ctx, cfg) {
   const version = tag.replace(/^v/i, "") || "0.0.0";
   const versionHeader = `## [${version}] \u2013 ${dateStr}
 `;
-  let unreleasedBody = "";
-  const hasSection = SECTION_CAPTURE_RE.test(file.content);
-  if (hasSection) {
-    const m = SECTION_CAPTURE_RE.exec(file.content);
-    unreleasedBody = (m?.[2] ?? "").trim();
-  } else {
-    return;
-  }
-  if (!unreleasedBody || unreleasedBody.replace(/\s+/g, "") === "") {
-    return;
-  }
-  const next = file.content.replace(SECTION_CAPTURE_RE, (_m, hdr, body) => {
-    const cleanBody = body.trimEnd();
-    const newTop = `${hdr}
-${versionHeader}${cleanBody}
-
-`;
-    return newTop;
-  });
+  const cap = captureUnreleased(file.content);
+  const unreleasedBody = cap.body.trim();
+  if (!unreleasedBody) return;
+  const next = (() => {
+    const before = cap.lines.slice(0, cap.start + 1).join("\n");
+    const after = cap.lines.slice(cap.end).join("\n");
+    const cleanBody = unreleasedBody.trimEnd();
+    return [before, "", `${versionHeader}${cleanBody}
+`, after].join("\n").replace(/\n{3,}/g, "\n\n");
+  })();
   await putFile(
     octo,
     owner,
@@ -26778,26 +26748,38 @@ ${versionHeader}${cleanBody}
 
 // src/categorize.ts
 var CC_RE = /^(\w+)(?:\(([^)]+)\))?(!)?:\s*(.+)$/i;
-var BREAKING_TOKENS = ["breaking change", "breaking changes", "breaking"];
+var BREAKING_TOKENS = [
+  "breaking change",
+  "breaking changes",
+  "breaking-change",
+  "breaking"
+];
 var COMMON_LABEL_ALIASES = {
+  // features
   "type: feat": "feat",
   "type: feature": "feat",
   enhancement: "feat",
   feature: "feat",
   feat: "feat",
+  // fixes
   "type: fix": "fix",
   bug: "fix",
   bugfix: "fix",
   hotfix: "fix",
   fix: "fix",
+  // docs
   docs: "docs",
   documentation: "docs",
+  // performance
   perf: "perf",
   performance: "perf",
+  // refactor
   refactor: "refactor",
   refactoring: "refactor",
+  // tests
   test: "test",
   tests: "test",
+  // chores/maintenance
   chore: "chore",
   maintenance: "chore"
 };
@@ -26831,7 +26813,7 @@ function categorize(title, labels = [], cfg) {
     const breaks = cfg.breakingLabels.map(norm);
     const normed = new Set(labels.map((l) => normalizeLabel(l)));
     for (const lab of normed) {
-      if (breaks.includes(lab) || lab === "breaking") {
+      if (breaks.includes(lab) || lab === "breaking" || lab === "breaking-change") {
         breaking = true;
         break;
       }
@@ -26856,12 +26838,12 @@ function categorize(title, labels = [], cfg) {
     return { category: aliasToCategory.get(type2), breaking, scope };
   }
   const FALLBACKS = [
-    // norsk/engelsk navn i prioritert rekkefølge
-    "Nytt",
     "Features",
-    "Fikser",
     "Fixes",
-    "Diverse",
+    "Docs",
+    "Performance",
+    "Refactor",
+    "Tests",
     "Chores",
     "Misc"
   ];
@@ -26875,7 +26857,6 @@ var norm2 = (s) => s.trim().toLowerCase();
 var MINOR_CATS = /* @__PURE__ */ new Set([
   "features",
   "feature",
-  "nytt",
   "enhancements",
   "adds",
   "new"
@@ -26883,21 +26864,18 @@ var MINOR_CATS = /* @__PURE__ */ new Set([
 var PATCH_CATS = /* @__PURE__ */ new Set([
   "fixes",
   "fix",
-  "fikser",
   "bug",
   "bugs",
   "docs",
-  "dokumentasjon",
+  "documentation",
   "refactor",
-  "refaktorering",
   "tests",
   "test",
   "performance",
   "perf",
   "chore",
   "chores",
-  "misc",
-  "diverse"
+  "misc"
 ]);
 function suggestBump(input) {
   const res = typeof input === "string" ? { category: input, breaking: false } : input;
@@ -26905,42 +26883,231 @@ function suggestBump(input) {
   const key = norm2(res.category);
   if (MINOR_CATS.has(key)) return "minor";
   if (PATCH_CATS.has(key)) return "patch";
-  if (key.includes("feature") || key.includes("nytt")) return "minor";
-  if (key.includes("fix") || key.includes("bug") || key.includes("docs") || key.includes("refactor") || key.includes("perf") || key.includes("test") || key.includes("chore") || key.includes("diverse") || key.includes("misc"))
+  if (key.includes("feature")) return "minor";
+  if (key.includes("fix") || key.includes("bug") || key.includes("docs") || key.includes("refactor") || key.includes("perf") || key.includes("test") || key.includes("chore") || key.includes("misc")) {
     return "patch";
+  }
   return "none";
 }
 
-// src/index.ts
-function assertString(name, v) {
-  if (typeof v !== "string")
-    throw new Error(`${name} must be a string; got ${typeof v}`);
+// src/monorepo.ts
+var github2 = __toESM(require_github(), 1);
+
+// src/github.ts
+var github = __toESM(require_github(), 1);
+async function listPrFiles(octo, owner, repo, prNumber) {
+  const files = [];
+  let page = 1;
+  for (; ; ) {
+    const { data } = await octo.rest.pulls.listFiles({
+      owner,
+      repo,
+      pull_number: prNumber,
+      per_page: 100,
+      page
+    });
+    for (const f of data) {
+      files.push({
+        filename: f.filename,
+        previous_filename: f.previous_filename,
+        status: f.status === "changed" || f.status === "modified" ? "modified" : f.status
+      });
+    }
+    if (data.length < 100) break;
+    page++;
+  }
+  return files;
 }
+async function readTextFileFromRepo(octo, owner, repo, path, ref) {
+  try {
+    const res = await octo.rest.repos.getContent({ owner, repo, path, ref });
+    if (Array.isArray(res.data)) return null;
+    if ("type" in res.data && res.data.type === "file") {
+      const content = Buffer.from(
+        res.data.content || "",
+        "base64"
+      ).toString("utf8");
+      return content;
+    }
+    return null;
+  } catch (e) {
+    if (e?.status === 404) return null;
+    throw e;
+  }
+}
+async function listRepoTreePaths(octo, owner, repo, ref) {
+  const refInfo = await octo.rest.git.getRef({
+    owner,
+    repo,
+    ref: ref.startsWith("refs/") ? ref.replace(/^refs\//, "") : `heads/${ref}`
+  });
+  const commitSha = refInfo.data.object.sha;
+  const tree = await octo.rest.git.getTree({
+    owner,
+    repo,
+    tree_sha: commitSha,
+    recursive: "true"
+  });
+  const paths = [];
+  for (const item of tree.data.tree) {
+    if (item.path) paths.push(item.path);
+  }
+  return paths;
+}
+
+// src/monorepo.ts
+function globToRegExp(glob) {
+  let g = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\\\*\\\*/g, "__GLOBSTAR__").replace(/\\\*/g, "__GLOB__");
+  g = g.replace(/__GLOBSTAR__/g, ".*").replace(/__GLOB__/g, "[^/]*");
+  return new RegExp("^" + g + "(?:/.*)?$");
+}
+async function readWorkspacesFromPackageJson(octo, owner, repo, ref) {
+  const pkgText = await readTextFileFromRepo(
+    octo,
+    owner,
+    repo,
+    "package.json",
+    ref
+  );
+  if (!pkgText) return null;
+  try {
+    const pkg = JSON.parse(pkgText);
+    if (Array.isArray(pkg.workspaces)) {
+      return pkg.workspaces;
+    }
+    if (pkg.workspaces && Array.isArray(pkg.workspaces.packages)) {
+      return pkg.workspaces.packages;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+async function readWorkspacesFromPnpm(octo, owner, repo, ref) {
+  const yml = await readTextFileFromRepo(
+    octo,
+    owner,
+    repo,
+    "pnpm-workspace.yaml",
+    ref
+  );
+  if (!yml) return null;
+  try {
+    const data = js_yaml_default.load(yml);
+    const arr = data?.packages;
+    if (Array.isArray(arr)) return arr;
+    return null;
+  } catch {
+    return null;
+  }
+}
+function normalizeGlobs(globs) {
+  const set2 = /* @__PURE__ */ new Set();
+  for (const g of globs ?? []) {
+    if (typeof g === "string" && g.trim())
+      set2.add(g.trim().replace(/^\.\//, ""));
+  }
+  return [...set2];
+}
+async function detectWorkspaceGlobs(octo, owner, repo, ref, cfgGlobs) {
+  const viaCfg = normalizeGlobs(cfgGlobs);
+  if (viaCfg.length) return viaCfg;
+  const viaPkg = normalizeGlobs(
+    await readWorkspacesFromPackageJson(octo, owner, repo, ref)
+  );
+  if (viaPkg.length) return viaPkg;
+  const viaPnpm = normalizeGlobs(
+    await readWorkspacesFromPnpm(octo, owner, repo, ref)
+  );
+  if (viaPnpm.length) return viaPnpm;
+  return [];
+}
+async function listWorkspacePackages(octo, owner, repo, ref, workspaceGlobs) {
+  if (!workspaceGlobs.length) return [];
+  const regexes = workspaceGlobs.map(globToRegExp);
+  const allPaths = await listRepoTreePaths(octo, owner, repo, ref);
+  const pkgJsonPaths = allPaths.filter((p) => p.endsWith("/package.json"));
+  const hits = pkgJsonPaths.filter(
+    (p) => regexes.some((re) => re.test(p.replace(/\/package\.json$/, "")))
+  );
+  const metas = [];
+  for (const pkgPath of hits) {
+    const dir = pkgPath.replace(/\/package\.json$/, "");
+    let name;
+    try {
+      const text = await readTextFileFromRepo(octo, owner, repo, pkgPath, ref);
+      if (text) {
+        const pkg = JSON.parse(text);
+        if (typeof pkg.name === "string" && pkg.name.trim())
+          name = pkg.name.trim();
+      }
+    } catch {
+    }
+    metas.push({ dir, name });
+  }
+  return metas;
+}
+function inferScopeFromPaths(changedPaths, packages) {
+  if (!changedPaths.length || !packages.length) return void 0;
+  const touched = [];
+  for (const p of changedPaths) {
+    const hit = packages.filter((pkg) => p === pkg.dir || p.startsWith(pkg.dir + "/")).sort((a, b) => b.dir.length - a.dir.length)[0];
+    if (hit && !touched.some((t) => t.dir === hit.dir)) touched.push(hit);
+  }
+  if (touched.length === 1) {
+    const only = touched[0];
+    return only.name || only.dir.split("/").pop();
+  }
+  return void 0;
+}
+async function detectScopeForCurrentPr(octo, owner, repo, ref, cfgGlobs) {
+  const prNumber = github2.context.payload?.pull_request?.number;
+  if (!prNumber) return void 0;
+  const files = await listPrFiles(octo, owner, repo, prNumber);
+  const changed = files.map((f) => f.filename);
+  const globs = await detectWorkspaceGlobs(octo, owner, repo, ref, cfgGlobs);
+  if (!globs.length) return void 0;
+  const pkgs = await listWorkspacePackages(octo, owner, repo, ref, globs);
+  if (!pkgs.length) return void 0;
+  return inferScopeFromPaths(changed, pkgs);
+}
+
+// src/index.ts
 async function run() {
-  const ctx = github.context;
+  const ctx = github3.context;
   const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
   if (!token) throw new Error("GITHUB_TOKEN missing");
-  const octo = github.getOctokit(token);
+  const octo = github3.getOctokit(token);
   const cfg = await loadConfig(core2.getInput("config-path"));
   if (ctx.eventName === "pull_request" && ctx.payload.action === "closed" && ctx.payload.pull_request?.merged) {
     const pr = ctx.payload.pull_request;
-    await ensureChangelog(octo, ctx, cfg);
-    const labels = (pr.labels ?? []).map(
-      (l) => typeof l === "string" ? l : l.name
+    const baseRef = ctx.payload?.pull_request?.base?.ref || (await octo.rest.repos.get({
+      owner: ctx.repo.owner,
+      repo: ctx.repo.repo
+    })).data.default_branch;
+    let inferredScope = void 0;
+    if (cfg.monorepo?.enabled) {
+      inferredScope = await detectScopeForCurrentPr(
+        octo,
+        ctx.repo.owner,
+        ctx.repo.repo,
+        baseRef,
+        cfg.monorepo?.packages
+      );
+    }
+    const res = categorize(
+      pr.title,
+      (pr.labels ?? []).map((l) => typeof l === "string" ? l : l.name),
+      cfg
     );
-    const res = categorize(pr.title, labels, cfg);
-    assertString("res.category", res.category);
     await addUnreleasedEntry(octo, ctx, cfg, {
       prNumber: pr.number,
       title: pr.title,
       category: res.category,
-      // ✅ bare streng
-      scope: res.scope
+      scope: res.scope ?? inferredScope
+      // prefer CC scope; fall back to monorepo inference
     });
     core2.setOutput("bump", suggestBump(res));
-    core2.info(
-      `RelNote Pro: PR #${pr.number} \u2192 category="${res.category}" scope="${res.scope ?? ""}"`
-    );
   }
   if (ctx.eventName === "release" && ctx.payload.action === "published") {
     await releaseUnreleased(octo, ctx, cfg);
