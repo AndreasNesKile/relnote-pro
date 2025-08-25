@@ -1,0 +1,27 @@
+{
+  "name": "relnote-pro",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=dist/index.js",
+    "lint": "eslint .",
+    "prepare": "pnpm run build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.10.0",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1",
+    "js-yaml": "^4.1.0",
+    "semver": "^7.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "esbuild": "^0.25.9",
+    "typescript": "^5.9.2"
+  }
+}

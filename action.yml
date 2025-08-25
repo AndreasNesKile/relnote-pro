@@ -1,0 +1,17 @@
+name: "RelNote Pro"
+description: "Auto-generate changelog and release notes with monorepo support"
+runs:
+  using: "node20"
+  main: "dist/index.js"
+inputs:
+  config-path:
+    description: "Path to .relnote-pro.yml"
+    required: false
+    default: ".relnote-pro.yml"
+  fail-on-missing:
+    description: "Fail if changelog not found"
+    required: false
+    default: "false"
+outputs:
+  bump:
+    description: "Suggested semver bump (major|minor|patch|none)"
