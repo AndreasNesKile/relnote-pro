@@ -3,11 +3,11 @@ import yaml from "js-yaml";
 
 export type Config = {
   changelogPath: string;
-  categories: Record<string, string[]>; // map "Features" -> ["feature", "feat"]
-  breakingLabels: string[]; // e.g. ["breaking", "breaking-change"]
+  categories: Record<string, string[]>; // e.g., "Features" -> ["feature", "feat"]
+  breakingLabels: string[]; // e.g., ["breaking", "breaking-change"]
   monorepo: { enabled: boolean; packages?: string[]; detect?: boolean };
   excludePaths?: string[];
-  language?: "en" | "no";
+  language?: "en"; // English-only
 };
 
 export async function loadConfig(path: string): Promise<Config> {
@@ -38,6 +38,6 @@ function applyDefaults(raw: Partial<Config>): Config {
     ],
     monorepo: raw.monorepo ?? { enabled: false, detect: true },
     excludePaths: raw.excludePaths ?? [],
-    language: raw.language ?? "en",
+    language: "en",
   };
 }

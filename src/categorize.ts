@@ -8,32 +8,48 @@ export type CategorizeResult = {
 
 // Conventional Commits: type(scope)!: subject
 const CC_RE = /^(\w+)(?:\(([^)]+)\))?(!)?:\s*(.+)$/i;
-const BREAKING_TOKENS = ["breaking change", "breaking changes", "breaking"];
+
+// Phrases in PR titles that indicate breaking changes
+const BREAKING_TOKENS = [
+  "breaking change",
+  "breaking changes",
+  "breaking-change",
+  "breaking",
+];
+
+// Common label aliases → normalized short types
 const COMMON_LABEL_ALIASES: Record<string, string> = {
+  // features
   "type: feat": "feat",
   "type: feature": "feat",
   enhancement: "feat",
   feature: "feat",
   feat: "feat",
 
+  // fixes
   "type: fix": "fix",
   bug: "fix",
   bugfix: "fix",
   hotfix: "fix",
   fix: "fix",
 
+  // docs
   docs: "docs",
   documentation: "docs",
 
+  // performance
   perf: "perf",
   performance: "perf",
 
+  // refactor
   refactor: "refactor",
   refactoring: "refactor",
 
+  // tests
   test: "test",
   tests: "test",
 
+  // chores/maintenance
   chore: "chore",
   maintenance: "chore",
 };
@@ -42,9 +58,8 @@ const norm = (s: string) => s.trim().toLowerCase();
 
 function normalizeLabel(l: string): string {
   const n = norm(l);
-  // fjern vanlige prefikser
+  // Strip common prefixes like "type:" or "kind:"
   const stripped = n.replace(/^type:\s*/, "").replace(/^kind:\s*/, "");
-  // map kjente varianter
   return COMMON_LABEL_ALIASES[stripped] ?? COMMON_LABEL_ALIASES[n] ?? stripped;
 }
 
@@ -53,9 +68,10 @@ export function categorize(
   labels: string[] = [],
   cfg: Config
 ): CategorizeResult {
-  // Bygg mapping alias->kategori basert på config
   const categoryOrder = Object.keys(cfg.categories ?? {});
   const aliasToCategory = new Map<string, string>();
+
+  // Build alias → configured category map (English-only categories expected in cfg)
   for (const cat of categoryOrder) {
     aliasToCategory.set(norm(cat), cat);
     for (const alias of cfg.categories[cat] ?? []) {
@@ -63,7 +79,7 @@ export function categorize(
     }
   }
 
-  // parse conventional commit
+  // Parse Conventional Commit title
   let type: string | undefined;
   let scope: string | undefined;
   let bang = false;
@@ -74,14 +90,19 @@ export function categorize(
     bang = !!m[3];
   }
 
-  // breaking?
+  // Determine "breaking"
   let breaking = bang;
   const lowerTitle = norm(title);
+
   if (!breaking && cfg.breakingLabels?.length) {
     const breaks = cfg.breakingLabels.map(norm);
     const normed = new Set(labels.map((l) => normalizeLabel(l)));
     for (const lab of normed) {
-      if (breaks.includes(lab) || lab === "breaking") {
+      if (
+        breaks.includes(lab) ||
+        lab === "breaking" ||
+        lab === "breaking-change"
+      ) {
         breaking = true;
         break;
       }
@@ -91,11 +112,10 @@ export function categorize(
     breaking = true;
   }
 
-  // 1) Match kategori via labels (etter normalisering)
+  // 1) Match via labels against configured categories/aliases
   const normedLabels = labels.map(normalizeLabel);
   for (const cat of categoryOrder) {
     const aliases = (cfg.categories[cat] ?? []).map(norm);
-    // tillat også match på selve kategorinavnet
     if (normedLabels.includes(norm(cat))) {
       return { category: cat, breaking, scope };
     }
@@ -106,19 +126,19 @@ export function categorize(
     }
   }
 
-  // 2) Match via CC type
+  // 2) Match via Conventional Commit type
   if (type && aliasToCategory.has(type)) {
     return { category: aliasToCategory.get(type)!, breaking, scope };
   }
 
-  // 3) Fallbacks
+  // 3) English-only fallbacks (pick the first one that exists in cfg)
   const FALLBACKS = [
-    // norsk/engelsk navn i prioritert rekkefølge
-    "Nytt",
     "Features",
-    "Fikser",
     "Fixes",
-    "Diverse",
+    "Docs",
+    "Performance",
+    "Refactor",
+    "Tests",
     "Chores",
     "Misc",
   ];

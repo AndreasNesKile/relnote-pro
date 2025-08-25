@@ -8,6 +8,7 @@ import {
 } from "./changelog.js";
 import { categorize, type CategorizeResult } from "./categorize.js";
 import { suggestBump } from "./semver.js";
+import { detectScopeForCurrentPr } from "./monorepo.js";
 
 function assertString(name: string, v: unknown): asserts v is string {
   if (typeof v !== "string")
@@ -28,28 +29,43 @@ async function run() {
     ctx.payload.pull_request?.merged
   ) {
     const pr = ctx.payload.pull_request;
-    await ensureChangelog(octo, ctx, cfg);
 
-    const labels = (pr.labels ?? []).map((l: any) =>
-      typeof l === "string" ? l : l.name
+    // Figure out which branch/ref to inspect for workspace layout (usually PR base)
+    const baseRef =
+      (ctx.payload as any)?.pull_request?.base?.ref ||
+      (
+        await octo.rest.repos.get({
+          owner: ctx.repo.owner,
+          repo: ctx.repo.repo,
+        })
+      ).data.default_branch;
+
+    // Try to infer scope from changed files if monorepo is enabled
+    let inferredScope: string | undefined = undefined;
+    if (cfg.monorepo?.enabled) {
+      inferredScope = await detectScopeForCurrentPr(
+        octo,
+        ctx.repo.owner,
+        ctx.repo.repo,
+        baseRef,
+        cfg.monorepo?.packages
+      );
+    }
+
+    const res = categorize(
+      pr.title,
+      (pr.labels ?? []).map((l: any) => (typeof l === "string" ? l : l.name)),
+      cfg
     );
-    const res: CategorizeResult = categorize(pr.title, labels, cfg);
-
-    assertString("res.category", res.category);
 
     await addUnreleasedEntry(octo, ctx, cfg, {
       prNumber: pr.number,
       title: pr.title,
-      category: res.category, // ✅ bare streng
-      scope: res.scope,
+      category: res.category,
+      scope: res.scope ?? inferredScope, // prefer CC scope; fall back to monorepo inference
     });
 
     core.setOutput("bump", suggestBump(res));
-    core.info(
-      `RelNote Pro: PR #${pr.number} → category="${res.category}" scope="${
-        res.scope ?? ""
-      }"`
-    );
   }
 
   if (ctx.eventName === "release" && ctx.payload.action === "published") {

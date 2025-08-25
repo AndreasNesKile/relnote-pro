@@ -1,13 +1,13 @@
 changelogPath: CHANGELOG.md
-language: no
+language: en
 categories:
-  Nytt: ["feature", "feat", "enhancement"]
-  Fikser: ["fix", "bug"]
-  Dokumentasjon: ["docs"]
-  Ytelse: ["perf"]
-  Refaktorering: ["refactor"]
-  Tester: ["test"]
-  Diverse: ["chore"]
+  Features: ["feature", "feat", "enhancement"]
+  Fixes: ["fix", "bug"]
+  Docs: ["docs"]
+  Performance: ["perf"]
+  Refactor: ["refactor"]
+  Tests: ["test"]
+  Chores: ["chore"]
 breakingLabels: ["breaking", "breaking-change", "major"]
 monorepo:
   enabled: true

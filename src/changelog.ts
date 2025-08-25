@@ -13,8 +13,9 @@ All notable changes to this project will be documented in this file.
 // --- Utils ---------------------------------------------------------------
 
 const ENC = "utf8";
-const UNRELEASED_RE = /^## \[Unreleased\]\s*$/m;
-const SECTION_CAPTURE_RE = /(## \[Unreleased\]\s*\n)([\s\S]*?)(?=^## \[|\Z)/m; // capture header + content
+
+// Accept "## [Unreleased]" or "## Unreleased" (case-insensitive)
+const UNRELEASED_HEADER_RE = /^##\s*\[?\s*unreleased\s*\]?\s*$/im;
 
 type FileData = { sha: string; content: string; branch: string };
 
@@ -32,6 +33,13 @@ async function getDefaultBranch(
 ): Promise<string> {
   const { data } = await octo.rest.repos.get({ owner, repo });
   return data.default_branch;
+}
+
+/** Prefer PR base or Release target; otherwise fallback (default branch). */
+function resolveTargetBranch(ctx: Context, fallback: string): string {
+  const prBase = (ctx.payload as any)?.pull_request?.base?.ref;
+  const relTarget = (ctx.payload as any)?.release?.target_commitish;
+  return prBase || relTarget || fallback;
 }
 
 async function getFile(
@@ -86,28 +94,46 @@ async function putFile(
   });
 }
 
-function ensureHeaderAndUnreleased(text: string): string {
-  let t = text;
-  if (!t.trim()) t = HEADER;
-  if (!/^\#\s*Changelog/m.test(t)) {
-    t = HEADER + t;
-  }
-  if (!UNRELEASED_RE.test(t)) {
-    const idx = t.indexOf("\n## ");
-    if (idx >= 0) {
-      t = t.slice(0, idx) + "\n## [Unreleased]\n\n" + t.slice(idx);
-    } else {
-      t += "\n## [Unreleased]\n\n";
+function captureUnreleased(text: string) {
+  const lines = text.split(/\r?\n/);
+  let start = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (UNRELEASED_HEADER_RE.test(lines[i])) {
+      start = i;
+      break;
     }
   }
-  t = t.replace(SECTION_CAPTURE_RE, (_m, hdr, body) => {
-    const normBody = body.endsWith("\n") ? body : body + "\n";
-    return `${hdr}${normBody}`;
-  });
+  if (start === -1) return { start: -1, end: -1, header: "", body: "", lines };
+
+  // find next "## " header
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^##\s+/.test(lines[i])) {
+      end = i;
+      break;
+    }
+  }
+  const header = lines[start];
+  const body = lines.slice(start + 1, end).join("\n");
+  return { start, end, header, body, lines };
+}
+
+function ensureHeaderAndUnreleased(text: string): string {
+  let t = text || "";
+  if (!/^\#\s*Changelog/im.test(t)) {
+    t = HEADER + t;
+  }
+  if (!UNRELEASED_HEADER_RE.test(t)) {
+    // Insert Unreleased as the first section after the intro
+    const idx = t.indexOf("\n## ");
+    if (idx >= 0) t = t.slice(0, idx) + "\n## [Unreleased]\n\n" + t.slice(idx);
+    else t += "\n## [Unreleased]\n\n";
+  }
   return t;
 }
 
 function normalizeTitleForBullet(title: string): string {
+  // Strip conventional commit prefix: type(scope)!: subject
   const m = /^(\w+)(?:\([^)]+\))?!?:\s*(.+)$/.exec(title.trim());
   return m ? m[2] : title.trim();
 }
@@ -132,6 +158,7 @@ function insertIntoUnreleasedCategory(
   const categoryHeader = catHeader(category);
   const lines = unreleasedBody.split("\n");
 
+  // Find existing category header (case-insensitive)
   let catStart = -1;
   for (let i = 0; i < lines.length; i++) {
     if (lines[i].trim().toLowerCase() === categoryHeader.trim().toLowerCase()) {
@@ -141,19 +168,21 @@ function insertIntoUnreleasedCategory(
   }
 
   if (catStart === -1) {
+    // Create category section at the end of Unreleased body
     const trimmed = unreleasedBody.replace(/\s+$/s, "");
-    const suffix = unreleasedBody.slice(trimmed.length); // bevar sluttlinjeskift
+    const suffix = unreleasedBody.slice(trimmed.length);
     const block = `${
       trimmed ? trimmed + "\n\n" : ""
     }${categoryHeader}\n${bullet}\n`;
     return block + suffix;
   }
 
+  // Insert bullet right after the category header (skip blank lines)
   let insertAt = catStart + 1;
   while (insertAt < lines.length && lines[insertAt].trim() === "") insertAt++;
-
   lines.splice(insertAt, 0, bullet);
 
+  // Ensure there is a trailing newline
   if (lines.length === 0 || lines[lines.length - 1] !== "") lines.push("");
 
   return lines.join("\n");
@@ -163,17 +192,16 @@ function replaceUnreleasedSection(
   fullText: string,
   updater: (body: string) => string
 ): string {
-  if (!SECTION_CAPTURE_RE.test(fullText)) {
-    const ensured = ensureHeaderAndUnreleased(fullText);
-    return ensured.replace(SECTION_CAPTURE_RE, (_m, hdr, body) => {
-      const updated = updater(body);
-      return `${hdr}${updated}`;
-    });
-  }
-  return fullText.replace(SECTION_CAPTURE_RE, (_m, hdr, body) => {
-    const updated = updater(body);
-    return `${hdr}${updated}`;
-  });
+  const t = ensureHeaderAndUnreleased(fullText);
+  const cap = captureUnreleased(t);
+  if (cap.start === -1) return t; // shouldn't happen after ensure
+  const updatedBody = updater(cap.body);
+  const before = cap.lines.slice(0, cap.start + 1).join("\n");
+  const after = cap.lines.slice(cap.end).join("\n");
+  // Normalize extra blank lines
+  return [before, updatedBody.trimEnd(), "", after]
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n");
 }
 
 // --- Public API ----------------------------------------------------------
@@ -184,7 +212,8 @@ export async function ensureChangelog(
   cfg: Config
 ): Promise<FileData> {
   const { owner, repo } = ctx.repo;
-  const branch = await getDefaultBranch(octo, owner, repo);
+  const defaultBranch = await getDefaultBranch(octo, owner, repo);
+  const branch = resolveTargetBranch(ctx, defaultBranch);
   const path = cfg.changelogPath ?? "CHANGELOG.md";
 
   const existing = await getFile(octo, owner, repo, path, branch);
@@ -203,7 +232,6 @@ export async function ensureChangelog(
     return { sha: fresh.sha, content: fresh.content, branch };
   }
 
-  // Sikre at header/Unreleased finnes
   const ensured = ensureHeaderAndUnreleased(existing.content);
   if (ensured !== existing.content) {
     await putFile(
@@ -232,12 +260,12 @@ export async function addUnreleasedEntry(
 ) {
   const { owner, repo } = ctx.repo;
   const path = cfg.changelogPath ?? "CHANGELOG.md";
-  const branch = await getDefaultBranch(octo, owner, repo);
+  const defaultBranch = await getDefaultBranch(octo, owner, repo);
+  const branch = resolveTargetBranch(ctx, defaultBranch);
 
   const file = await getFile(octo, owner, repo, path, branch);
   const base = file?.content ?? HEADER;
 
-  // Sørg for at Unreleased finnes, og sett inn bullet
   const next = replaceUnreleasedSection(
     ensureHeaderAndUnreleased(base),
     (body) =>
@@ -267,10 +295,11 @@ export async function releaseUnreleased(
 ) {
   const { owner, repo } = ctx.repo;
   const path = cfg.changelogPath ?? "CHANGELOG.md";
-  const branch = await getDefaultBranch(octo, owner, repo);
+  const defaultBranch = await getDefaultBranch(octo, owner, repo);
+  const branch = resolveTargetBranch(ctx, defaultBranch);
 
   const file = await getFile(octo, owner, repo, path, branch);
-  if (!file) return; // Ingen changelog å oppdatere
+  if (!file) return; // no changelog to update
 
   const now = new Date();
   const yyyy = now.getFullYear();
@@ -278,36 +307,26 @@ export async function releaseUnreleased(
   const dd = String(now.getDate()).padStart(2, "0");
   const dateStr = `${yyyy}-${mm}-${dd}`;
 
-  // Hent tag/versjon fra release-event
+  // Pull version tag from the release event
   const tag = (ctx.payload as any)?.release?.tag_name ?? "";
   const version = tag.replace(/^v/i, "") || "0.0.0";
   const versionHeader = `## [${version}] – ${dateStr}\n`;
 
-  let unreleasedBody = "";
-  const hasSection = SECTION_CAPTURE_RE.test(file.content);
+  // Extract Unreleased section body
+  const cap = captureUnreleased(file.content);
+  const unreleasedBody = cap.body.trim();
+  if (!unreleasedBody) return; // nothing to move
 
-  if (hasSection) {
-    const m = SECTION_CAPTURE_RE.exec(file.content);
-    unreleasedBody = (m?.[2] ?? "").trim();
-  } else {
-    // ingen Unreleased — ingenting å flytte
-    return;
-  }
-
-  if (!unreleasedBody || unreleasedBody.replace(/\s+/g, "") === "") {
-    // Tom Unreleased — ikke gjør noe
-    return;
-  }
-
-  // Sett Unreleased tom og legg inn ny versjonsseksjon rett under Unreleased
-  const next = file.content.replace(SECTION_CAPTURE_RE, (_m, hdr, body) => {
-    // Fjern ekstra tomrom i enden av body
-    const cleanBody = body.trimEnd();
-    const newTop =
-      `${hdr}\n` + // behold Unreleased header + en blank linje
-      `${versionHeader}${cleanBody}\n\n`;
-    return newTop;
-  });
+  // Move Unreleased → versioned section, keep Unreleased header in place
+  const next = (() => {
+    const before = cap.lines.slice(0, cap.start + 1).join("\n");
+    const after = cap.lines.slice(cap.end).join("\n");
+    const cleanBody = unreleasedBody.trimEnd();
+    // Insert version section right after Unreleased header; keep Unreleased empty for future entries
+    return [before, "", `${versionHeader}${cleanBody}\n`, after]
+      .join("\n")
+      .replace(/\n{3,}/g, "\n\n");
+  })();
 
   await putFile(
     octo,
@@ -320,7 +339,7 @@ export async function releaseUnreleased(
     file.sha
   );
 
-  // Oppdater GitHub Release body med samme tekst (uten versjonsheader)
+  // Mirror in the GitHub Release body
   const releaseId = (ctx.payload as any)?.release?.id as number | undefined;
   if (releaseId) {
     await octo.rest.repos.updateRelease({

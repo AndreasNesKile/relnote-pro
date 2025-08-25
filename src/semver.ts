@@ -4,25 +4,22 @@ export type Bump = "major" | "minor" | "patch" | "none";
 
 const norm = (s: string) => s.trim().toLowerCase();
 
-// Kjente kategorinavn (både EN og NO)
 const MINOR_CATS = new Set([
   "features",
   "feature",
-  "nytt",
   "enhancements",
   "adds",
   "new",
 ]);
+
 const PATCH_CATS = new Set([
   "fixes",
   "fix",
-  "fikser",
   "bug",
   "bugs",
   "docs",
-  "dokumentasjon",
+  "documentation",
   "refactor",
-  "refaktorering",
   "tests",
   "test",
   "performance",
@@ -30,9 +27,9 @@ const PATCH_CATS = new Set([
   "chore",
   "chores",
   "misc",
-  "diverse",
 ]);
 
+/** Suggest a SemVer bump based on category + breaking flag. */
 export function suggestBump(input: string | CategorizeResult): Bump {
   const res: CategorizeResult =
     typeof input === "string" ? { category: input, breaking: false } : input;
@@ -45,7 +42,7 @@ export function suggestBump(input: string | CategorizeResult): Bump {
   if (PATCH_CATS.has(key)) return "patch";
 
   // Fuzzy fallback
-  if (key.includes("feature") || key.includes("nytt")) return "minor";
+  if (key.includes("feature")) return "minor";
   if (
     key.includes("fix") ||
     key.includes("bug") ||
@@ -54,15 +51,15 @@ export function suggestBump(input: string | CategorizeResult): Bump {
     key.includes("perf") ||
     key.includes("test") ||
     key.includes("chore") ||
-    key.includes("diverse") ||
     key.includes("misc")
-  )
+  ) {
     return "patch";
+  }
 
   return "none";
 }
 
-// Kombiner flere bump-forslag (major > minor > patch > none)
+/** Combine multiple bump suggestions (major > minor > patch > none). */
 export function combineBumps(bumps: Bump[]): Bump {
   if (bumps.includes("major")) return "major";
   if (bumps.includes("minor")) return "minor";
