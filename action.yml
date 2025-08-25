@@ -2,7 +2,7 @@ name: "RelNote Pro"
 description: "Auto-generate changelog and release notes with monorepo support"
 runs:
   using: "node20"
-  main: "dist/index.js"
+  main: "dist/index.cjs"
 inputs:
   config-path:
     description: "Path to .relnote-pro.yml"
