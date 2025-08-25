@@ -4,10 +4,14 @@
   "type": "module",
   "description": "",
   "main": "dist/index.cjs",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
   "scripts": {
     "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/index.cjs",
     "lint": "eslint .",
-    "prepare": "pnpm run build",
+    "prepare": "pnpm build",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "keywords": [],
@@ -18,7 +22,6 @@
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.1",
     "@types/js-yaml": "^4.0.9",
-    "js-yaml": "^4.1.0",
     "semver": "^7.7.2"
   },
   "devDependencies": {

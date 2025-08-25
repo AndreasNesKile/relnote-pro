@@ -1,4 +1,5 @@
 name: "RelNote Pro"
+branding: { icon: "file-text", color: "blue" }
 description: "Auto-generate changelog and release notes with monorepo support"
 runs:
   using: "node20"
